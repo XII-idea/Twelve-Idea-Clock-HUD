@@ -14,7 +14,17 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-version = mod_version
+// 构建版本由构建环境动态决定：
+// - 发布标签（-Pversion_tag=v0.0.1）：1.21-<tag>，开头的 "v" 会被过滤掉
+// - GitHub Actions（GITHUB_ACTIONS + GITHUB_SHA）：1.21-<短 SHA>
+// - 其他手动构建：1.21-SNAPSHOT
+def versionSuffix = 'SNAPSHOT'
+if (project.hasProperty('version_tag')) {
+    versionSuffix = project.property('version_tag').toString().replaceFirst(/^v/, '')
+} else if (System.getenv('GITHUB_ACTIONS') != null && System.getenv('GITHUB_SHA') != null) {
+    versionSuffix = System.getenv('GITHUB_SHA').take(7)
+}
+version = "1.21-${versionSuffix}"
 group = mod_group_id
 
 sourceSets.main.resources {
@@ -158,7 +168,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
-            mod_version            : mod_version,
+            mod_version            : version,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

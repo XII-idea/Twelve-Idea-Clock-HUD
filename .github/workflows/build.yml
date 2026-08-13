@@ -26,5 +26,12 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      # 标签推送时把 tag 传给 Gradle 作为版本号（如 v0.0.1 -> 1.21-0.0.1）；
+      # 其余 CI 构建由 GITHUB_SHA 自动生成 1.21-<短 SHA> 版本号。
       - name: Build with Gradle
-        run: ./gradlew build
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            ./gradlew build -Pversion_tag="${GITHUB_REF#refs/tags/}"
+          else
+            ./gradlew build
+          fi
