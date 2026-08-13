@@ -51,6 +51,9 @@ public final class HudConstants {
     public static final float DOT_SMALL_RADIUS = 1.25F;  // ~3.5px visual diameter
     public static final float[] DOT_LARGE_CENTER_X = {2.25F, 99.75F, 197F};
     public static final float[] DOT_SMALL_CENTER_X = {25F, 50F, 75F, 125F, 150F, 175F};
+    // 圆的细分段数：小点半径小，用更低的段数即可保持平滑，节省顶点。
+    public static final int DOT_LARGE_SEGMENTS = 20;
+    public static final int DOT_SMALL_SEGMENTS = 12;
 
     // 轨道起点的水平内边距：使 dayTime=0 时太阳中心与滑轨第一个点重合
     // （SUN_WIDTH/2 - DOT_LARGE_CENTER_X[0] = 12 - 2.25）。

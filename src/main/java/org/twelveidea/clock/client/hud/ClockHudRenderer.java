@@ -118,16 +118,15 @@ public class ClockHudRenderer {
         int red = (HudConstants.DOT_COLOR >> 16) & 0xFF;
         int green = (HudConstants.DOT_COLOR >> 8) & 0xFF;
         int blue = HudConstants.DOT_COLOR & 0xFF;
-        int segments = 20;
 
         BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
         for (float cx : HudConstants.DOT_LARGE_CENTER_X) {
             appendCircleTriangles(buffer, matrix, trackStartX + cx, trackCenterY,
-                    HudConstants.DOT_LARGE_RADIUS, red, green, blue, alpha, segments);
+                    HudConstants.DOT_LARGE_RADIUS, red, green, blue, alpha, HudConstants.DOT_LARGE_SEGMENTS);
         }
         for (float cx : HudConstants.DOT_SMALL_CENTER_X) {
             appendCircleTriangles(buffer, matrix, trackStartX + cx, trackCenterY,
-                    HudConstants.DOT_SMALL_RADIUS, red, green, blue, alpha, segments);
+                    HudConstants.DOT_SMALL_RADIUS, red, green, blue, alpha, HudConstants.DOT_SMALL_SEGMENTS);
         }
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
