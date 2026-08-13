@@ -17,16 +17,27 @@
  */
 package org.twelveidea.clock.client.hud;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.GameRenderer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import org.joml.Matrix4f;
 import org.twelveidea.clock.Config;
 
 /**
- * Renders the clock bar HUD element.
+ * Renders the clock HUD: a dot track plus a sun/moon position indicator.
  * Ported from ClockHUD's GuiClock (MIT, Copyright (c) 2017 Sam Beckmann).
+ *
+ * The track dots are drawn as anti-aliased vector circles instead of sampling the
+ * sheet, so they are perfectly round at any GUI scale.
  */
 public class ClockHudRenderer {
     // Runtime toggle for the whole clock HUD (not persisted in the config).
@@ -63,29 +74,29 @@ public class ClockHudRenderer {
         }
 
         int yCoord = Config.Y_COORD.getAsInt();
-        int startX = xCoord + HudConstants.SUN_WIDTH / 2 - HudConstants.DOT / 2;
-        int startY = yCoord + HudConstants.ICON_HEIGHT / 2 - HudConstants.BAR_HEIGHT / 2;
+        float trackCenterY = yCoord + HudConstants.ICON_HEIGHT / 2.0F;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(scale, scale, scale);
 
-        // Draw the progress bar.
-        // UV (u=0, v=0, w=BAR_LENGTH, h=BAR_HEIGHT) in the 256-unit system, as in the
-        // original drawTexturedModalRect call.
-        guiGraphics.blit(HudConstants.HUD_TEXTURE, startX, startY,
-                HudConstants.BAR_LENGTH, HudConstants.BAR_HEIGHT,
-                0, 0, HudConstants.BAR_LENGTH, HudConstants.BAR_HEIGHT,
-                HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
+        // Track dots: large ones at both ends and the centre, small ones as ticks.
+        for (float cx : HudConstants.DOT_LARGE_CENTER_X) {
+            drawAaCircle(guiGraphics, xCoord + cx, trackCenterY,
+                    HudConstants.DOT_LARGE_RADIUS, HudConstants.DOT_COLOR);
+        }
+        for (float cx : HudConstants.DOT_SMALL_CENTER_X) {
+            drawAaCircle(guiGraphics, xCoord + cx, trackCenterY,
+                    HudConstants.DOT_SMALL_RADIUS, HudConstants.DOT_COLOR);
+        }
 
+        // Position indicator: sun during the day, moon at night (sampled from the sheet).
         int scaledTime = getScaledTime(level);
         if (isDay(getCurrentTime(level))) {
-            // Draw the sun (u=0, v=BAR_HEIGHT, w=SUN_WIDTH, h=ICON_HEIGHT).
             guiGraphics.blit(HudConstants.HUD_TEXTURE, xCoord + scaledTime, yCoord,
                     HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     0, HudConstants.BAR_HEIGHT, HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
         } else {
-            // Draw the moon (u=SUN_WIDTH, v=BAR_HEIGHT, w=MOON_WIDTH, h=ICON_HEIGHT).
             guiGraphics.blit(HudConstants.HUD_TEXTURE,
                     xCoord + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2 + scaledTime, yCoord,
                     HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
@@ -98,17 +109,61 @@ public class ClockHudRenderer {
     }
 
     /**
+     * Draws a filled circle with a 1px anti-aliased edge using the current pose matrix.
+     * A solid inner fan plus an alpha-fading outer ring keeps the outline smooth.
+     */
+    private static void drawAaCircle(GuiGraphics guiGraphics, float centerX, float centerY, float radius, int argb) {
+        Matrix4f matrix = guiGraphics.pose().last().pose();
+        int alpha = (argb >> 24) & 0xFF;
+        int red = (argb >> 16) & 0xFF;
+        int green = (argb >> 8) & 0xFF;
+        int blue = argb & 0xFF;
+        int segments = 20;
+        float innerRadius = Math.max(radius - 0.5F, 0.0F);
+
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.enableBlend();
+
+        // Solid inner circle.
+        BufferBuilder fan = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+        fan.addVertex(matrix, centerX, centerY, 0).setColor(red, green, blue, alpha);
+        for (int i = 0; i <= segments; i++) {
+            double angle = Math.PI * 2 * i / segments;
+            fan.addVertex(matrix,
+                    centerX + innerRadius * (float) Math.cos(angle),
+                    centerY + innerRadius * (float) Math.sin(angle), 0)
+                    .setColor(red, green, blue, alpha);
+        }
+        BufferUploader.drawWithShader(fan.buildOrThrow());
+
+        // Anti-aliased edge ring (alpha fades from solid to transparent).
+        float outerRadius = radius + 0.5F;
+        BufferBuilder strip = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            double angle = Math.PI * 2 * i / segments;
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
+            strip.addVertex(matrix, centerX + outerRadius * cos, centerY + outerRadius * sin, 0)
+                    .setColor(red, green, blue, 0);
+            strip.addVertex(matrix, centerX + innerRadius * cos, centerY + innerRadius * sin, 0)
+                    .setColor(red, green, blue, alpha);
+        }
+        BufferUploader.drawWithShader(strip.buildOrThrow());
+    }
+
+    /**
      * Scales the current time to the length of the bar.
      *
      * @return integer offset to be used when rendering the sun or moon.
      */
     private int getScaledTime(ClientLevel level) {
         int currentTime = getCurrentTime(level);
+        int maxOffset = HudConstants.BAR_LENGTH - HudConstants.DOT;
 
         if (isDay(currentTime)) {
-            return currentTime * (HudConstants.BAR_LENGTH - HudConstants.DOT) / HudConstants.NEW_NIGHT_TICK;
+            return currentTime * maxOffset / HudConstants.NEW_NIGHT_TICK;
         } else {
-            return (currentTime - HudConstants.NEW_NIGHT_TICK) * (HudConstants.BAR_LENGTH - HudConstants.DOT)
+            return (currentTime - HudConstants.NEW_NIGHT_TICK) * maxOffset
                     / (HudConstants.DAY_TICKS - HudConstants.NEW_NIGHT_TICK);
         }
     }

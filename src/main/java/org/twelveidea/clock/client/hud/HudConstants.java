@@ -46,6 +46,14 @@ public final class HudConstants {
     public static final int BAR_HEIGHT = 10 / TEXTURE_SCALE;
     public static final int DOT = 10 / TEXTURE_SCALE;
 
+    // The track dots are drawn programmatically (vector circles) at the original
+    // 2:1 display scale, so they stay perfectly round regardless of GUI filtering.
+    public static final int DOT_COLOR = 0xFFD3D3D3;      // 211,211,211 grey like the sheet
+    public static final float DOT_LARGE_RADIUS = 2.0F;   // ~5px visual diameter
+    public static final float DOT_SMALL_RADIUS = 1.25F;  // ~3.5px visual diameter
+    public static final float[] DOT_LARGE_CENTER_X = {2.25F, 99.75F, 197F};
+    public static final float[] DOT_SMALL_CENTER_X = {25F, 50F, 75F, 125F, 150F, 175F};
+
     // Time constants.
     public static final int DAY_TICKS = 24000;
     public static final int NEW_DAY_TICK = 50;
