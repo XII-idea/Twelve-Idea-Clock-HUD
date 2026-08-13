@@ -68,7 +68,8 @@ public class ClockHudRenderer {
 
         int xCoord;
         if (Config.CENTER_CLOCK.getAsBoolean()) {
-            int totalWidth = HudConstants.BAR_LENGTH + HudConstants.SUN_WIDTH - HudConstants.DOT;
+            // 居中基准为滑轨轨道（含内边距），使圆点轨道相对屏幕水平居中。
+            float totalWidth = 2 * HudConstants.TRACK_OFFSET + HudConstants.BAR_LENGTH;
             xCoord = (int) ((guiGraphics.guiWidth() - totalWidth * scale) / (2 * scale));
         } else {
             xCoord = Config.X_COORD.getAsInt();

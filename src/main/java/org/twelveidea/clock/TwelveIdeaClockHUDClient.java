@@ -35,8 +35,9 @@ import org.twelveidea.clock.client.keybind.KeyInputHandler;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = TwelveIdeaClockHUD.MODID, dist = Dist.CLIENT)
-// Register static @SubscribeEvent methods on the mod event bus.
-@EventBusSubscriber(modid = TwelveIdeaClockHUD.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+// Register static @SubscribeEvent methods. NeoForge 21.1 起不再需要指定 bus：
+// 继承 IModBusEvent 的监听器自动注册到 mod 总线，其余注册到 NeoForge.EVENT_BUS。
+@EventBusSubscriber(modid = TwelveIdeaClockHUD.MODID, value = Dist.CLIENT)
 public class TwelveIdeaClockHUDClient {
     public TwelveIdeaClockHUDClient(ModContainer container) {
         // Allows NeoForge to create a config screen for this mod's configs.
