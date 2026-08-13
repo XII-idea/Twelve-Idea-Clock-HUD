@@ -37,8 +37,10 @@ public class DayCountRenderer {
     private final Minecraft mc;
     private long endAnimationTime;
     private boolean isRunning;
+    private String dayString;
     private ClientLevel lastLevel;
     private long lastDay = -1;
+    private boolean pendingAnnouncement;
 
     public DayCountRenderer(Minecraft mc) {
         this.mc = mc;
@@ -53,10 +55,13 @@ public class DayCountRenderer {
         }
 
         // 世界切换时重置触发状态，避免旧世界的状态污染新世界。
+        // 同时标记待播报，使进入世界（或重进世界）时立即显示一次当前天数。
         if (level != lastLevel) {
             lastLevel = level;
             lastDay = -1;
+            dayString = null;
             isRunning = false;
+            pendingAnnouncement = true;
         }
 
         if (Config.SHOW_DAY_COUNT.getAsBoolean() && (isRunning || isNewDay(level))) {
@@ -70,11 +75,12 @@ public class DayCountRenderer {
             if (!isRunning) {
                 isRunning = true;
                 endAnimationTime = currentTime + ANIMATION_TIME;
+                // 天数在动画期间不会变化，只在动画开始时构建一次，避免每帧重复格式化。
+                dayString = formDayString(level);
             }
 
             float percentRemaining = (endAnimationTime - currentTime) / (float) ANIMATION_TIME;
             float scaleFactor = getScaleFactor(percentRemaining);
-            String dayString = formDayString(level);
 
             GuiGraphics guiGraphics = event.getGuiGraphics();
 
@@ -98,11 +104,19 @@ public class DayCountRenderer {
      * <p>每世界每天只触发一次，且仅在当天早晨窗口内判定。使用「天数已变化且处于
      * 早晨窗口」而非精确 tick 相等判断，避免进入已开始的世界或掉帧导致漏显示。</p>
      *
-     * @return 是否进入了新的一天且尚未播报过。
+     * <p>进入世界（世界切换）时不受早晨窗口限制，无条件播报一次当前天数。</p>
+     *
+     * @return 是否应播报当前天数。
      */
     private boolean isNewDay(ClientLevel level) {
         long day = Math.floorDiv(level.getDayTime(), HudConstants.DAY_TICKS);
         long dayTime = level.getDayTime() % HudConstants.DAY_TICKS;
+
+        if (pendingAnnouncement) {
+            pendingAnnouncement = false;
+            lastDay = day;
+            return true;
+        }
         if (day == lastDay) {
             return false;
         }

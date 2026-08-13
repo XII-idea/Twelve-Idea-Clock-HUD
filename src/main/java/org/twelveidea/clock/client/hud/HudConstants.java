@@ -29,8 +29,6 @@ public final class HudConstants {
 
     // Texture is authored at 2x scale on a 512x512 sheet.
     public static final int TEXTURE_SCALE = 2;
-    public static final int TEXTURE_WIDTH = 512;
-    public static final int TEXTURE_HEIGHT = 512;
 
     // The original mod used drawTexturedModalRect, which samples the sheet as a
     // 256x256 texture. UV coordinates are therefore given in the 256-unit system;
@@ -56,7 +54,6 @@ public final class HudConstants {
 
     // Time constants.
     public static final int DAY_TICKS = 24000;
-    public static final int NEW_DAY_TICK = 50;
     public static final int NEW_NIGHT_TICK = 13000;
 
     private HudConstants() {

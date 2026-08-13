@@ -81,18 +81,13 @@ public class ClockHudRenderer {
         guiGraphics.pose().scale(scale, scale, scale);
 
         // Track dots: large ones at both ends and the centre, small ones as ticks.
-        for (float cx : HudConstants.DOT_LARGE_CENTER_X) {
-            drawAaCircle(guiGraphics, xCoord + cx, trackCenterY,
-                    HudConstants.DOT_LARGE_RADIUS, HudConstants.DOT_COLOR);
-        }
-        for (float cx : HudConstants.DOT_SMALL_CENTER_X) {
-            drawAaCircle(guiGraphics, xCoord + cx, trackCenterY,
-                    HudConstants.DOT_SMALL_RADIUS, HudConstants.DOT_COLOR);
-        }
+        // 所有点合并为一次三角形列表绘制，避免每点多次 draw 调用。
+        drawTrackDots(guiGraphics, xCoord, trackCenterY);
 
         // Position indicator: sun during the day, moon at night (sampled from the sheet).
-        int scaledTime = getScaledTime(level);
-        if (isDay(getCurrentTime(level))) {
+        int currentTime = getCurrentTime(level);
+        int scaledTime = getScaledTime(currentTime);
+        if (isDay(currentTime)) {
             int sunX = xCoord + clampIconX(scaledTime, HudConstants.SUN_WIDTH);
             guiGraphics.blit(HudConstants.HUD_TEXTURE, sunX, yCoord,
                     HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
@@ -113,52 +108,69 @@ public class ClockHudRenderer {
     }
 
     /**
-     * Draws a filled circle with a 1px anti-aliased edge using the current pose matrix.
-     * A solid inner fan plus an alpha-fading outer ring keeps the outline smooth.
+     * 将轨道上的所有点（两端与中心的大点、刻度小点）合并为一次三角形列表绘制。
+     * 每个点由实心圆盘加抗锯齿外环组成，全部顶点写入同一个 BufferBuilder 后一次性上传，
+     * 从而把每帧多次 draw 调用收敛为一次。
      */
-    private static void drawAaCircle(GuiGraphics guiGraphics, float centerX, float centerY, float radius, int argb) {
+    private static void drawTrackDots(GuiGraphics guiGraphics, int xCoord, float trackCenterY) {
         Matrix4f matrix = guiGraphics.pose().last().pose();
-        int alpha = (argb >> 24) & 0xFF;
-        int red = (argb >> 16) & 0xFF;
-        int green = (argb >> 8) & 0xFF;
-        int blue = argb & 0xFF;
+        int alpha = (HudConstants.DOT_COLOR >> 24) & 0xFF;
+        int red = (HudConstants.DOT_COLOR >> 16) & 0xFF;
+        int green = (HudConstants.DOT_COLOR >> 8) & 0xFF;
+        int blue = HudConstants.DOT_COLOR & 0xFF;
         int segments = 20;
-        float innerRadius = Math.max(radius - 0.5F, 0.0F);
+
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+        for (float cx : HudConstants.DOT_LARGE_CENTER_X) {
+            appendCircleTriangles(buffer, matrix, xCoord + cx, trackCenterY,
+                    HudConstants.DOT_LARGE_RADIUS, red, green, blue, alpha, segments);
+        }
+        for (float cx : HudConstants.DOT_SMALL_CENTER_X) {
+            appendCircleTriangles(buffer, matrix, xCoord + cx, trackCenterY,
+                    HudConstants.DOT_SMALL_RADIUS, red, green, blue, alpha, segments);
+        }
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         boolean blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
         RenderSystem.enableBlend();
         try {
-            // Solid inner circle.
-            BufferBuilder fan = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-            fan.addVertex(matrix, centerX, centerY, 0).setColor(red, green, blue, alpha);
-            for (int i = 0; i <= segments; i++) {
-                double angle = Math.PI * 2 * i / segments;
-                fan.addVertex(matrix,
-                        centerX + innerRadius * (float) Math.cos(angle),
-                        centerY + innerRadius * (float) Math.sin(angle), 0)
-                        .setColor(red, green, blue, alpha);
-            }
-            BufferUploader.drawWithShader(fan.buildOrThrow());
-
-            // Anti-aliased edge ring (alpha fades from solid to transparent).
-            float outerRadius = radius + 0.5F;
-            BufferBuilder strip = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-            for (int i = 0; i <= segments; i++) {
-                double angle = Math.PI * 2 * i / segments;
-                float cos = (float) Math.cos(angle);
-                float sin = (float) Math.sin(angle);
-                strip.addVertex(matrix, centerX + outerRadius * cos, centerY + outerRadius * sin, 0)
-                        .setColor(red, green, blue, 0);
-                strip.addVertex(matrix, centerX + innerRadius * cos, centerY + innerRadius * sin, 0)
-                        .setColor(red, green, blue, alpha);
-            }
-            BufferUploader.drawWithShader(strip.buildOrThrow());
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
         } finally {
             // 恢复绘制前的混合状态，避免状态泄漏影响后续 HUD 渲染。
             if (!blendEnabled) {
                 RenderSystem.disableBlend();
             }
+        }
+    }
+
+    /**
+     * 向 buffer 追加单个点的三角形：实心内圆盘 + 外缘抗锯齿环（alpha 由内向外渐隐）。
+     */
+    private static void appendCircleTriangles(BufferBuilder buffer, Matrix4f matrix,
+            float centerX, float centerY, float radius, int red, int green, int blue, int alpha, int segments) {
+        float innerRadius = Math.max(radius - 0.5F, 0.0F);
+        float outerRadius = radius + 0.5F;
+        for (int i = 0; i < segments; i++) {
+            double a0 = Math.PI * 2 * i / segments;
+            double a1 = Math.PI * 2 * (i + 1) / segments;
+            float cos0 = (float) Math.cos(a0);
+            float sin0 = (float) Math.sin(a0);
+            float cos1 = (float) Math.cos(a1);
+            float sin1 = (float) Math.sin(a1);
+
+            // 实心圆盘：圆心与内圆边界组成的三角形。
+            buffer.addVertex(matrix, centerX, centerY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, centerX + innerRadius * cos0, centerY + innerRadius * sin0, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, centerX + innerRadius * cos1, centerY + innerRadius * sin1, 0).setColor(red, green, blue, alpha);
+
+            // 抗锯齿外环：内圆(实色)到外圆(透明)渐变，两个三角形。
+            buffer.addVertex(matrix, centerX + outerRadius * cos0, centerY + outerRadius * sin0, 0).setColor(red, green, blue, 0);
+            buffer.addVertex(matrix, centerX + innerRadius * cos0, centerY + innerRadius * sin0, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, centerX + outerRadius * cos1, centerY + outerRadius * sin1, 0).setColor(red, green, blue, 0);
+
+            buffer.addVertex(matrix, centerX + innerRadius * cos0, centerY + innerRadius * sin0, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, centerX + innerRadius * cos1, centerY + innerRadius * sin1, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, centerX + outerRadius * cos1, centerY + outerRadius * sin1, 0).setColor(red, green, blue, 0);
         }
     }
 
@@ -177,10 +189,10 @@ public class ClockHudRenderer {
     /**
      * Scales the current time to the length of the bar.
      *
+     * @param currentTime the day time within a single day.
      * @return integer offset to be used when rendering the sun or moon.
      */
-    private int getScaledTime(ClientLevel level) {
-        int currentTime = getCurrentTime(level);
+    private int getScaledTime(int currentTime) {
         int maxOffset = HudConstants.BAR_LENGTH - HudConstants.DOT;
 
         if (isDay(currentTime)) {
