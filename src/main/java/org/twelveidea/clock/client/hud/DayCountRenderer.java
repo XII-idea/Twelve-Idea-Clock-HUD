@@ -32,10 +32,13 @@ import org.twelveidea.clock.Config;
  */
 public class DayCountRenderer {
     private static final int ANIMATION_TIME = 3000; // 3 second animation
+    private static final int NEW_DAY_WINDOW = 1000; // 每天的触发窗口（tick），避免逐帧瞬态判断导致漏显示
 
     private final Minecraft mc;
     private long endAnimationTime;
     private boolean isRunning;
+    private ClientLevel lastLevel;
+    private long lastDay = -1;
 
     public DayCountRenderer(Minecraft mc) {
         this.mc = mc;
@@ -47,6 +50,13 @@ public class DayCountRenderer {
         ClientLevel level = mc.level;
         if (level == null) {
             return;
+        }
+
+        // 世界切换时重置触发状态，避免旧世界的状态污染新世界。
+        if (level != lastLevel) {
+            lastLevel = level;
+            lastDay = -1;
+            isRunning = false;
         }
 
         if (Config.SHOW_DAY_COUNT.getAsBoolean() && (isRunning || isNewDay(level))) {
@@ -85,10 +95,22 @@ public class DayCountRenderer {
     /**
      * Tests if it's a new day.
      *
-     * @return if the dayTime is the specified time of a new day.
+     * <p>每世界每天只触发一次，且仅在当天早晨窗口内判定。使用「天数已变化且处于
+     * 早晨窗口」而非精确 tick 相等判断，避免进入已开始的世界或掉帧导致漏显示。</p>
+     *
+     * @return 是否进入了新的一天且尚未播报过。
      */
     private boolean isNewDay(ClientLevel level) {
-        return level.getDayTime() % HudConstants.DAY_TICKS == HudConstants.NEW_DAY_TICK;
+        long day = Math.floorDiv(level.getDayTime(), HudConstants.DAY_TICKS);
+        long dayTime = level.getDayTime() % HudConstants.DAY_TICKS;
+        if (day == lastDay) {
+            return false;
+        }
+        if (dayTime >= 0 && dayTime < NEW_DAY_WINDOW) {
+            lastDay = day;
+            return true;
+        }
+        return false;
     }
 
     /**

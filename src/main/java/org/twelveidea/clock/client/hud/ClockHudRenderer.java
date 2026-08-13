@@ -30,6 +30,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.twelveidea.clock.Config;
 
 /**
@@ -92,13 +93,16 @@ public class ClockHudRenderer {
         // Position indicator: sun during the day, moon at night (sampled from the sheet).
         int scaledTime = getScaledTime(level);
         if (isDay(getCurrentTime(level))) {
-            guiGraphics.blit(HudConstants.HUD_TEXTURE, xCoord + scaledTime, yCoord,
+            int sunX = xCoord + clampIconX(scaledTime, HudConstants.SUN_WIDTH);
+            guiGraphics.blit(HudConstants.HUD_TEXTURE, sunX, yCoord,
                     HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     0, HudConstants.BAR_HEIGHT, HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
         } else {
-            guiGraphics.blit(HudConstants.HUD_TEXTURE,
-                    xCoord + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2 + scaledTime, yCoord,
+            int moonX = xCoord + clampIconX(
+                    scaledTime + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2,
+                    HudConstants.MOON_WIDTH);
+            guiGraphics.blit(HudConstants.HUD_TEXTURE, moonX, yCoord,
                     HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.SUN_WIDTH, HudConstants.BAR_HEIGHT,
                     HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
@@ -122,33 +126,52 @@ public class ClockHudRenderer {
         float innerRadius = Math.max(radius - 0.5F, 0.0F);
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        boolean blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
         RenderSystem.enableBlend();
+        try {
+            // Solid inner circle.
+            BufferBuilder fan = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+            fan.addVertex(matrix, centerX, centerY, 0).setColor(red, green, blue, alpha);
+            for (int i = 0; i <= segments; i++) {
+                double angle = Math.PI * 2 * i / segments;
+                fan.addVertex(matrix,
+                        centerX + innerRadius * (float) Math.cos(angle),
+                        centerY + innerRadius * (float) Math.sin(angle), 0)
+                        .setColor(red, green, blue, alpha);
+            }
+            BufferUploader.drawWithShader(fan.buildOrThrow());
 
-        // Solid inner circle.
-        BufferBuilder fan = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        fan.addVertex(matrix, centerX, centerY, 0).setColor(red, green, blue, alpha);
-        for (int i = 0; i <= segments; i++) {
-            double angle = Math.PI * 2 * i / segments;
-            fan.addVertex(matrix,
-                    centerX + innerRadius * (float) Math.cos(angle),
-                    centerY + innerRadius * (float) Math.sin(angle), 0)
-                    .setColor(red, green, blue, alpha);
+            // Anti-aliased edge ring (alpha fades from solid to transparent).
+            float outerRadius = radius + 0.5F;
+            BufferBuilder strip = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            for (int i = 0; i <= segments; i++) {
+                double angle = Math.PI * 2 * i / segments;
+                float cos = (float) Math.cos(angle);
+                float sin = (float) Math.sin(angle);
+                strip.addVertex(matrix, centerX + outerRadius * cos, centerY + outerRadius * sin, 0)
+                        .setColor(red, green, blue, 0);
+                strip.addVertex(matrix, centerX + innerRadius * cos, centerY + innerRadius * sin, 0)
+                        .setColor(red, green, blue, alpha);
+            }
+            BufferUploader.drawWithShader(strip.buildOrThrow());
+        } finally {
+            // 恢复绘制前的混合状态，避免状态泄漏影响后续 HUD 渲染。
+            if (!blendEnabled) {
+                RenderSystem.disableBlend();
+            }
         }
-        BufferUploader.drawWithShader(fan.buildOrThrow());
+    }
 
-        // Anti-aliased edge ring (alpha fades from solid to transparent).
-        float outerRadius = radius + 0.5F;
-        BufferBuilder strip = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        for (int i = 0; i <= segments; i++) {
-            double angle = Math.PI * 2 * i / segments;
-            float cos = (float) Math.cos(angle);
-            float sin = (float) Math.sin(angle);
-            strip.addVertex(matrix, centerX + outerRadius * cos, centerY + outerRadius * sin, 0)
-                    .setColor(red, green, blue, 0);
-            strip.addVertex(matrix, centerX + innerRadius * cos, centerY + innerRadius * sin, 0)
-                    .setColor(red, green, blue, alpha);
-        }
-        BufferUploader.drawWithShader(strip.buildOrThrow());
+    /**
+     * 将指示图标的相对偏移限制在轨道范围内，使其右缘不越过轨道右端。
+     *
+     * @param relativeX 相对 xCoord 的偏移
+     * @param iconWidth 指示图标宽度
+     * @return 限制后的相对偏移
+     */
+    private static int clampIconX(int relativeX, int iconWidth) {
+        int maxOffset = HudConstants.BAR_LENGTH - HudConstants.DOT - iconWidth;
+        return Math.min(relativeX, maxOffset);
     }
 
     /**
