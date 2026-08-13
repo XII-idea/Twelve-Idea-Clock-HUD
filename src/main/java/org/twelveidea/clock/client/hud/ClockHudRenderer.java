@@ -70,23 +70,28 @@ public class ClockHudRenderer {
         guiGraphics.pose().scale(scale, scale, scale);
 
         // Draw the progress bar.
-        guiGraphics.blit(HudConstants.HUD_TEXTURE, startX, startY, 0, 0,
+        // UV (u=0, v=0, w=BAR_LENGTH, h=BAR_HEIGHT) in the 256-unit system, as in the
+        // original drawTexturedModalRect call.
+        guiGraphics.blit(HudConstants.HUD_TEXTURE, startX, startY,
                 HudConstants.BAR_LENGTH, HudConstants.BAR_HEIGHT,
-                HudConstants.TEXTURE_WIDTH, HudConstants.TEXTURE_HEIGHT);
+                0, 0, HudConstants.BAR_LENGTH, HudConstants.BAR_HEIGHT,
+                HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
 
         int scaledTime = getScaledTime(level);
         if (isDay(getCurrentTime(level))) {
-            // Draw the sun.
-            guiGraphics.blit(HudConstants.HUD_TEXTURE, xCoord + scaledTime, yCoord, 0, HudConstants.BAR_HEIGHT,
+            // Draw the sun (u=0, v=BAR_HEIGHT, w=SUN_WIDTH, h=ICON_HEIGHT).
+            guiGraphics.blit(HudConstants.HUD_TEXTURE, xCoord + scaledTime, yCoord,
                     HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
-                    HudConstants.TEXTURE_WIDTH, HudConstants.TEXTURE_HEIGHT);
+                    0, HudConstants.BAR_HEIGHT, HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
+                    HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
         } else {
-            // Draw the moon.
+            // Draw the moon (u=SUN_WIDTH, v=BAR_HEIGHT, w=MOON_WIDTH, h=ICON_HEIGHT).
             guiGraphics.blit(HudConstants.HUD_TEXTURE,
                     xCoord + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2 + scaledTime, yCoord,
+                    HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.SUN_WIDTH, HudConstants.BAR_HEIGHT,
                     HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
-                    HudConstants.TEXTURE_WIDTH, HudConstants.TEXTURE_HEIGHT);
+                    HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
         }
 
         guiGraphics.pose().popPose();

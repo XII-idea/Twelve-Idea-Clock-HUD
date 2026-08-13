@@ -32,6 +32,13 @@ public final class HudConstants {
     public static final int TEXTURE_WIDTH = 512;
     public static final int TEXTURE_HEIGHT = 512;
 
+    // The original mod used drawTexturedModalRect, which samples the sheet as a
+    // 256x256 texture. UV coordinates are therefore given in the 256-unit system;
+    // passing 256 as the texture size makes blit sample the 512 sheet at 2x,
+    // exactly like the original renderer.
+    public static final int UV_TEXTURE_WIDTH = 256;
+    public static final int UV_TEXTURE_HEIGHT = 256;
+
     public static final int SUN_WIDTH = 48 / TEXTURE_SCALE;
     public static final int MOON_WIDTH = 32 / TEXTURE_SCALE;
     public static final int ICON_HEIGHT = 50 / TEXTURE_SCALE;
