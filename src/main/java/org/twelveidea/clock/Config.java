@@ -24,15 +24,15 @@ public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.BooleanValue SHOW_DAY_COUNT = BUILDER
-            .comment("Display the day count at the beginning of each day")
+            .comment("Display the day count at the beginning of each day", "Default: true")
             .define("showDayCount", true);
 
     public static final ModConfigSpec.BooleanValue CENTER_CLOCK = BUILDER
-            .comment("If true, ignore xCoord and always lock the clock to the center of the screen")
+            .comment("If true, ignore xCoord and always lock the clock to the center of the screen", "Default: false")
             .define("centeredClock", false);
 
     public static final ModConfigSpec.BooleanValue HIDE_IN_DEBUG = BUILDER
-            .comment("Hide the clock HUD while the F3 debug screen is open")
+            .comment("Hide the clock HUD while the F3 debug screen is open", "Default: true")
             .define("hideInDebug", true);
 
     public static final ModConfigSpec.IntValue X_COORD = BUILDER

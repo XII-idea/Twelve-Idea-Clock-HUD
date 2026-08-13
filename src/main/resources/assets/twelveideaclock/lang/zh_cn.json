@@ -8,7 +8,7 @@
   "twelveideaclock.configuration.showDayCount": "显示天数",
   "twelveideaclock.configuration.showDayCount.tooltip": "在每天开始时显示天数",
   "twelveideaclock.configuration.centeredClock": "时钟居中",
-  "twelveideaclock.configuration.centeredClock.tooltip": "若为真，忽略 xCoord，始终将时钟锁定在屏幕中央",
+  "twelveideaclock.configuration.centeredClock.tooltip": "若开启(true)，忽略 xCoord，始终将时钟锁定在屏幕中央",
   "twelveideaclock.configuration.xCoord": "X 坐标",
   "twelveideaclock.configuration.xCoord.tooltip": "时钟的起始 X 坐标",
   "twelveideaclock.configuration.yCoord": "Y 坐标",
