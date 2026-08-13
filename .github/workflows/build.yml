@@ -35,3 +35,11 @@ jobs:
           else
             ./gradlew build
           fi
+
+      # 上传构建产物（jar），便于在 Actions 页面直接下载。
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: twelveideaclock
+          path: build/libs/*.jar
+          if-no-files-found: error
