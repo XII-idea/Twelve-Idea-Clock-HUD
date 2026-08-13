@@ -52,6 +52,10 @@ public final class HudConstants {
     public static final float[] DOT_LARGE_CENTER_X = {2.25F, 99.75F, 197F};
     public static final float[] DOT_SMALL_CENTER_X = {25F, 50F, 75F, 125F, 150F, 175F};
 
+    // 轨道起点的水平内边距：使 dayTime=0 时太阳中心与滑轨第一个点重合
+    // （SUN_WIDTH/2 - DOT_LARGE_CENTER_X[0] = 12 - 2.25）。
+    public static final float TRACK_OFFSET = 9.75F;
+
     // Time constants.
     public static final int DAY_TICKS = 24000;
     public static final int NEW_NIGHT_TICK = 13000;

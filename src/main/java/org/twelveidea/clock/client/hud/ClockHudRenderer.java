@@ -82,21 +82,20 @@ public class ClockHudRenderer {
 
         // Track dots: large ones at both ends and the centre, small ones as ticks.
         // 所有点合并为一次三角形列表绘制，避免每点多次 draw 调用。
-        drawTrackDots(guiGraphics, xCoord, trackCenterY);
+        drawTrackDots(guiGraphics, xCoord + HudConstants.TRACK_OFFSET, trackCenterY);
 
         // Position indicator: sun during the day, moon at night (sampled from the sheet).
+        // 太阳/月亮从 xCoord 起沿轨道滑动，不做端点限制；仅滑轨保留内边距偏移。
         int currentTime = getCurrentTime(level);
         int scaledTime = getScaledTime(currentTime);
         if (isDay(currentTime)) {
-            int sunX = xCoord + clampIconX(scaledTime, HudConstants.SUN_WIDTH);
+            int sunX = xCoord + scaledTime;
             guiGraphics.blit(HudConstants.HUD_TEXTURE, sunX, yCoord,
                     HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     0, HudConstants.BAR_HEIGHT, HudConstants.SUN_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.UV_TEXTURE_WIDTH, HudConstants.UV_TEXTURE_HEIGHT);
         } else {
-            int moonX = xCoord + clampIconX(
-                    scaledTime + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2,
-                    HudConstants.MOON_WIDTH);
+            int moonX = xCoord + (HudConstants.SUN_WIDTH - HudConstants.MOON_WIDTH) / 2 + scaledTime;
             guiGraphics.blit(HudConstants.HUD_TEXTURE, moonX, yCoord,
                     HudConstants.MOON_WIDTH, HudConstants.ICON_HEIGHT,
                     HudConstants.SUN_WIDTH, HudConstants.BAR_HEIGHT,
@@ -112,7 +111,7 @@ public class ClockHudRenderer {
      * 每个点由实心圆盘加抗锯齿外环组成，全部顶点写入同一个 BufferBuilder 后一次性上传，
      * 从而把每帧多次 draw 调用收敛为一次。
      */
-    private static void drawTrackDots(GuiGraphics guiGraphics, int xCoord, float trackCenterY) {
+    private static void drawTrackDots(GuiGraphics guiGraphics, float trackStartX, float trackCenterY) {
         Matrix4f matrix = guiGraphics.pose().last().pose();
         int alpha = (HudConstants.DOT_COLOR >> 24) & 0xFF;
         int red = (HudConstants.DOT_COLOR >> 16) & 0xFF;
@@ -122,11 +121,11 @@ public class ClockHudRenderer {
 
         BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
         for (float cx : HudConstants.DOT_LARGE_CENTER_X) {
-            appendCircleTriangles(buffer, matrix, xCoord + cx, trackCenterY,
+            appendCircleTriangles(buffer, matrix, trackStartX + cx, trackCenterY,
                     HudConstants.DOT_LARGE_RADIUS, red, green, blue, alpha, segments);
         }
         for (float cx : HudConstants.DOT_SMALL_CENTER_X) {
-            appendCircleTriangles(buffer, matrix, xCoord + cx, trackCenterY,
+            appendCircleTriangles(buffer, matrix, trackStartX + cx, trackCenterY,
                     HudConstants.DOT_SMALL_RADIUS, red, green, blue, alpha, segments);
         }
 
@@ -172,18 +171,6 @@ public class ClockHudRenderer {
             buffer.addVertex(matrix, centerX + innerRadius * cos1, centerY + innerRadius * sin1, 0).setColor(red, green, blue, alpha);
             buffer.addVertex(matrix, centerX + outerRadius * cos1, centerY + outerRadius * sin1, 0).setColor(red, green, blue, 0);
         }
-    }
-
-    /**
-     * 将指示图标的相对偏移限制在轨道范围内，使其右缘不越过轨道右端。
-     *
-     * @param relativeX 相对 xCoord 的偏移
-     * @param iconWidth 指示图标宽度
-     * @return 限制后的相对偏移
-     */
-    private static int clampIconX(int relativeX, int iconWidth) {
-        int maxOffset = HudConstants.BAR_LENGTH - HudConstants.DOT - iconWidth;
-        return Math.min(relativeX, maxOffset);
     }
 
     /**
