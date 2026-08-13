@@ -92,13 +92,17 @@ public class DayCountRenderer {
     }
 
     /**
-     * Creates the day string based on total world time.
+     * Creates the day string based on the world day time.
+     *
+     * <p>Uses getDayTime (not getGameTime): sleeping advances the day counter, while
+     * gameTime only counts ticks actually run, which would keep the count stuck after
+     * players sleep through the night.</p>
      *
      * @return a string of "Day: " + day number.
      */
     private String formDayString(ClientLevel level) {
         return Component.translatable("twelveideaclock.daycount",
-                level.getGameTime() / HudConstants.DAY_TICKS).getString();
+                Math.floorDiv(level.getDayTime(), HudConstants.DAY_TICKS)).getString();
     }
 
     /**
