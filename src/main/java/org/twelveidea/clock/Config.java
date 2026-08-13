@@ -31,6 +31,10 @@ public class Config {
             .comment("If true, ignore xCoord and always lock the clock to the center of the screen")
             .define("centeredClock", false);
 
+    public static final ModConfigSpec.BooleanValue HIDE_IN_DEBUG = BUILDER
+            .comment("Hide the clock HUD while the F3 debug screen is open")
+            .define("hideInDebug", true);
+
     public static final ModConfigSpec.IntValue X_COORD = BUILDER
             .comment("Starting x coordinate of the clock")
             .defineInRange("xCoord", 2, 0, Integer.MAX_VALUE);

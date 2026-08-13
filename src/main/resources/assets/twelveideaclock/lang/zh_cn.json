@@ -14,5 +14,7 @@
   "twelveideaclock.configuration.yCoord": "Y 坐标",
   "twelveideaclock.configuration.yCoord.tooltip": "时钟的起始 Y 坐标",
   "twelveideaclock.configuration.scale": "缩放",
-  "twelveideaclock.configuration.scale.tooltip": "时钟的缩放比例"
+  "twelveideaclock.configuration.scale.tooltip": "时钟的缩放比例",
+  "twelveideaclock.configuration.hideInDebug": "调试界面隐藏",
+  "twelveideaclock.configuration.hideInDebug.tooltip": "F3 调试界面打开时隐藏时钟 HUD"
 }

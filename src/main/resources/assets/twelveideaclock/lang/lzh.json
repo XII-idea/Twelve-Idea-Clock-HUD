@@ -14,5 +14,7 @@
   "twelveideaclock.configuration.yCoord": "縱座標",
   "twelveideaclock.configuration.yCoord.tooltip": "時計起始之縱座標",
   "twelveideaclock.configuration.scale": "尺度",
-  "twelveideaclock.configuration.scale.tooltip": "時計之尺度"
+  "twelveideaclock.configuration.scale.tooltip": "時計之尺度",
+  "twelveideaclock.configuration.hideInDebug": "調試時隱",
+  "twelveideaclock.configuration.hideInDebug.tooltip": "調試屏啟時藏時計"
 }

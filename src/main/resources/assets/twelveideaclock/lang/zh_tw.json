@@ -14,5 +14,7 @@
   "twelveideaclock.configuration.yCoord": "Y 座標",
   "twelveideaclock.configuration.yCoord.tooltip": "時鐘的起始 Y 座標",
   "twelveideaclock.configuration.scale": "縮放",
-  "twelveideaclock.configuration.scale.tooltip": "時鐘的縮放比例"
+  "twelveideaclock.configuration.scale.tooltip": "時鐘的縮放比例",
+  "twelveideaclock.configuration.hideInDebug": "調試介面隱藏",
+  "twelveideaclock.configuration.hideInDebug.tooltip": "F3 調試介面開啟時隱藏時鐘 HUD"
 }

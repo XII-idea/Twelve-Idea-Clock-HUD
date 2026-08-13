@@ -57,6 +57,10 @@ public class ClockHudRenderer {
         if (!guiActive) {
             return;
         }
+        // 与 Jade 一致：F3 调试界面打开时隐藏时钟 HUD（可通过配置关闭）。
+        if (Config.HIDE_IN_DEBUG.getAsBoolean() && mc.getDebugOverlay().showDebugScreen()) {
+            return;
+        }
 
         ClientLevel level = mc.level;
         if (level == null) {

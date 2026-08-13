@@ -14,5 +14,7 @@
   "twelveideaclock.configuration.yCoord": "Y Coordinate",
   "twelveideaclock.configuration.yCoord.tooltip": "Starting y coordinate of the clock",
   "twelveideaclock.configuration.scale": "Scale",
-  "twelveideaclock.configuration.scale.tooltip": "Scale of the clock"
+  "twelveideaclock.configuration.scale.tooltip": "Scale of the clock",
+  "twelveideaclock.configuration.hideInDebug": "Hide in Debug",
+  "twelveideaclock.configuration.hideInDebug.tooltip": "Hide the clock HUD while the F3 debug screen is open"
 }
