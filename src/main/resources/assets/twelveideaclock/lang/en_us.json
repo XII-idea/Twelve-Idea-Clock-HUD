@@ -1,0 +1,18 @@
+{
+  "keys.twelveideaclock.category": "Twelve Idea Clock HUD",
+  "keys.twelveideaclock.toggle": "Toggle Clock",
+  "twelveideaclock.daycount": "Day: %d",
+  "twelveideaclock.configuration.title": "Twelve Idea Clock HUD Configs",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml": "Twelve Idea Clock HUD Configs",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml.title": "Twelve Idea Clock HUD Configs",
+  "twelveideaclock.configuration.showDayCount": "Show Day Count",
+  "twelveideaclock.configuration.showDayCount.tooltip": "Display the day count at the beginning of each day",
+  "twelveideaclock.configuration.centeredClock": "Center Clock",
+  "twelveideaclock.configuration.centeredClock.tooltip": "If true, ignore xCoord and always lock the clock to the center of the screen",
+  "twelveideaclock.configuration.xCoord": "X Coordinate",
+  "twelveideaclock.configuration.xCoord.tooltip": "Starting x coordinate of the clock",
+  "twelveideaclock.configuration.yCoord": "Y Coordinate",
+  "twelveideaclock.configuration.yCoord.tooltip": "Starting y coordinate of the clock",
+  "twelveideaclock.configuration.scale": "Scale",
+  "twelveideaclock.configuration.scale.tooltip": "Scale of the clock"
+}

@@ -1,0 +1,18 @@
+{
+  "keys.twelveideaclock.category": "十二光塵時計",
+  "keys.twelveideaclock.toggle": "啟閉時計",
+  "twelveideaclock.daycount": "第 %d 日",
+  "twelveideaclock.configuration.title": "十二光塵時計之設",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml": "十二光塵時計之設",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml.title": "十二光塵時計之設",
+  "twelveideaclock.configuration.showDayCount": "示天數",
+  "twelveideaclock.configuration.showDayCount.tooltip": "於每日之始示天數",
+  "twelveideaclock.configuration.centeredClock": "時計居中",
+  "twelveideaclock.configuration.centeredClock.tooltip": "若為真，則略去 xCoord，常置時計於屏之中",
+  "twelveideaclock.configuration.xCoord": "橫座標",
+  "twelveideaclock.configuration.xCoord.tooltip": "時計起始之橫座標",
+  "twelveideaclock.configuration.yCoord": "縱座標",
+  "twelveideaclock.configuration.yCoord.tooltip": "時計起始之縱座標",
+  "twelveideaclock.configuration.scale": "尺度",
+  "twelveideaclock.configuration.scale.tooltip": "時計之尺度"
+}

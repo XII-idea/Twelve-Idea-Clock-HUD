@@ -1,0 +1,49 @@
+/*
+ * Twelve Idea Clock HUD
+ * Copyright (C) 2026 Twelve Idea
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package org.twelveidea.clock.client.hud;
+
+import net.minecraft.resources.ResourceLocation;
+import org.twelveidea.clock.TwelveIdeaClockHUD;
+
+/**
+ * Constants shared by the HUD renderers.
+ */
+public final class HudConstants {
+    public static final ResourceLocation HUD_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(TwelveIdeaClockHUD.MODID, "textures/gui/gui_clock.png");
+
+    // Texture is authored at 2x scale on a 512x512 sheet.
+    public static final int TEXTURE_SCALE = 2;
+    public static final int TEXTURE_WIDTH = 512;
+    public static final int TEXTURE_HEIGHT = 512;
+
+    public static final int SUN_WIDTH = 48 / TEXTURE_SCALE;
+    public static final int MOON_WIDTH = 32 / TEXTURE_SCALE;
+    public static final int ICON_HEIGHT = 50 / TEXTURE_SCALE;
+    public static final int BAR_LENGTH = 400 / TEXTURE_SCALE;
+    public static final int BAR_HEIGHT = 10 / TEXTURE_SCALE;
+    public static final int DOT = 10 / TEXTURE_SCALE;
+
+    // Time constants.
+    public static final int DAY_TICKS = 24000;
+    public static final int NEW_DAY_TICK = 50;
+    public static final int NEW_NIGHT_TICK = 13000;
+
+    private HudConstants() {
+    }
+}

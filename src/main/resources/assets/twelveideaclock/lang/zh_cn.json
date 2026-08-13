@@ -1,0 +1,18 @@
+{
+  "keys.twelveideaclock.category": "拾贰光尘时钟HUD",
+  "keys.twelveideaclock.toggle": "切换时钟",
+  "twelveideaclock.daycount": "第 %d 天",
+  "twelveideaclock.configuration.title": "拾贰光尘时钟HUD 配置",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml": "拾贰光尘时钟HUD 配置",
+  "twelveideaclock.configuration.section.twelveideaclock.client.toml.title": "拾贰光尘时钟HUD 配置",
+  "twelveideaclock.configuration.showDayCount": "显示天数",
+  "twelveideaclock.configuration.showDayCount.tooltip": "在每天开始时显示天数",
+  "twelveideaclock.configuration.centeredClock": "时钟居中",
+  "twelveideaclock.configuration.centeredClock.tooltip": "若为真，忽略 xCoord，始终将时钟锁定在屏幕中央",
+  "twelveideaclock.configuration.xCoord": "X 坐标",
+  "twelveideaclock.configuration.xCoord.tooltip": "时钟的起始 X 坐标",
+  "twelveideaclock.configuration.yCoord": "Y 坐标",
+  "twelveideaclock.configuration.yCoord.tooltip": "时钟的起始 Y 坐标",
+  "twelveideaclock.configuration.scale": "缩放",
+  "twelveideaclock.configuration.scale.tooltip": "时钟的缩放比例"
+}
