@@ -54,7 +54,8 @@ public class ClockHudRenderer {
 
     @SubscribeEvent
     public void onRenderGui(RenderGuiEvent.Post event) {
-        if (!guiActive) {
+        // Hide together with the vanilla HUD when the player presses F1.
+        if (!guiActive || mc.options.hideGui) {
             return;
         }
         // 与 Jade 一致：F3 调试界面打开时隐藏时钟 HUD（可通过配置关闭）。

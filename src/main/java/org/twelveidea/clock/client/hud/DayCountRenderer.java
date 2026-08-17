@@ -49,6 +49,11 @@ public class DayCountRenderer {
 
     @SubscribeEvent
     public void onRenderGui(RenderGuiEvent.Post event) {
+        // Hide together with the vanilla HUD when the player presses F1.
+        if (mc.options.hideGui) {
+            return;
+        }
+
         ClientLevel level = mc.level;
         if (level == null) {
             return;
